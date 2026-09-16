@@ -59,6 +59,6 @@ Les versions corrigées incluent Vite 8, Vitest 5, React Router 7 et PostCSS 8. 
 - `npm ci` signale encore des paquets de développement dépréciés issus d'ESLint 8 ; l'audit reste à zéro et ces paquets ne sont pas livrés au navigateur ;
 - aucun score Lighthouse ou Core Web Vitals n'est revendiqué dans cette recette.
 
-## Recette à refaire après le premier déploiement
+## Recette publique
 
-La recette locale valide le build. Après création du dépôt et du projet Pages, refaire les dix contrôles de `DEPLOIEMENT_GITHUB_CLOUDFLARE.md` sur l'URL publique, puis vérifier le succès de GitHub Actions et du déploiement Cloudflare.
+Le dépôt GitHub et le projet Cloudflare Pages ont été créés le 16 septembre 2026. Le workflow GitHub Actions et le premier build Pages ont réussi. L'URL [budget-dashboard-portfolio-codex.pages.dev](https://budget-dashboard-portfolio-codex.pages.dev) répond en HTTP 200, affiche la démonstration fictive, conserve la route Revenus après actualisation et ne produit aucune erreur ou alerte de console. Les en-têtes de sécurité prévus sont actifs.

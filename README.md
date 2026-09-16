@@ -64,13 +64,13 @@ npm audit --audit-level=high
 
 ## Publier la version Codex
 
-Le guide [GitHub puis Cloudflare Pages](docs/DEPLOIEMENT_GITHUB_CLOUDFLARE.md) donne chaque action, les valeurs exactes à saisir et les vérifications après publication. Configuration prévue :
+La démonstration est publiée sur [Cloudflare Pages](https://budget-dashboard-portfolio-codex.pages.dev). Le guide [GitHub puis Cloudflare Pages](docs/DEPLOIEMENT_GITHUB_CLOUDFLARE.md) documente chaque action et les valeurs utilisées. Configuration active :
 
 | Plateforme | Nom réservé à cette version |
 |---|---|
 | GitHub | `valpdu12-dev/budget-dashboard-portfolio-codex` |
 | Cloudflare Pages | `budget-dashboard-portfolio-codex` |
-| URL attendue | `https://budget-dashboard-portfolio-codex.pages.dev` |
+| Démo publique | [budget-dashboard-portfolio-codex.pages.dev](https://budget-dashboard-portfolio-codex.pages.dev) |
 
 Le build Cloudflare utilise `npm run build`, publie `dist` et lit Node dans `.nvmrc`. Aucun secret ni variable métier n'est requis.
 
