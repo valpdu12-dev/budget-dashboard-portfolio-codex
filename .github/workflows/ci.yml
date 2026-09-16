@@ -1,0 +1,42 @@
+name: Vérification
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: verify-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: Lint, types, tests, build et contrôle public
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Récupérer le dépôt
+        uses: actions/checkout@v4
+
+      - name: Utiliser la version Node du projet
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Installer depuis le lockfile
+        run: npm ci
+
+      - name: Exécuter la recette automatisée
+        run: npm run check
+
+      - name: Vérifier les vulnérabilités élevées et critiques
+        run: npm audit --audit-level=high
+
+      - name: Vérifier que le générateur est déterministe
+        run: git diff --exit-code

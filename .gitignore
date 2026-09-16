@@ -1,0 +1,48 @@
+# Dépendances
+node_modules/
+
+# Build
+dist/
+
+# Vite — fichiers timestamp temporaires
+*.timestamp-*.mjs
+
+# TypeScript
+tsconfig.tsbuildinfo
+
+# Lighthouse
+lighthouse-report.html
+
+# Variables d'environnement
+.env
+.env.local
+.env.*.local
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Documents de pilotage locaux — conservés à côté du projet, jamais publiés
+plan/
+
+# Dossier monté (FUSE) — fichiers fantômes laissés quand un fichier encore
+# ouvert est réécrit en place (perl -pi, sed -i…). Contenu déjà en version.
+.fuse_hidden*
+
+PROMPT_SESSION_*.md
+ANALYSE_PLAN_EVOLUTION_V2.md
+AUDIT_PHASE0_DASHBOARD_V2.md
+AUDIT_UX_PRODUIT_2026-06.md
+PLAN_EVOLUTION_DASHBOARD_V2.md
+PLAN_EVOLUTION_DASHBOARD_V3.md
+PLAN_SALAIRE_VS_INFLATION.md
+GUIDE_UTILISATION_BUDGET_SAAS.md
+Guide_MiseAJour_Dashboard.docx
+budget-saas-frontend/
+
+# Classeurs importés localement — jamais versionnés
+data/*.xlsx
+
+# Sauvegardes et exports de bases de données
+sauvegarde-*.sql
+*-avant-renommage.sql

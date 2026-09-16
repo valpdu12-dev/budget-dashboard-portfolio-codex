@@ -1,0 +1,301 @@
+{
+  "months": [
+    {
+      "mk": "2024-01",
+      "entreprise": "Atelier Alpha",
+      "brut": 3487,
+      "net": 2720,
+      "cotSal": 767,
+      "indem": 45,
+      "retenues": 0
+    },
+    {
+      "mk": "2024-02",
+      "entreprise": "Atelier Alpha",
+      "brut": 3487,
+      "net": 2720,
+      "cotSal": 767,
+      "indem": 45,
+      "retenues": 0
+    },
+    {
+      "mk": "2024-03",
+      "entreprise": "Atelier Alpha",
+      "brut": 3487,
+      "net": 2720,
+      "cotSal": 767,
+      "indem": 45,
+      "retenues": 0
+    },
+    {
+      "mk": "2024-04",
+      "entreprise": "Atelier Alpha",
+      "brut": 3487,
+      "net": 2720,
+      "cotSal": 767,
+      "indem": 45,
+      "retenues": 0
+    },
+    {
+      "mk": "2024-05",
+      "entreprise": "Atelier Alpha",
+      "brut": 3487,
+      "net": 2720,
+      "cotSal": 767,
+      "indem": 45,
+      "retenues": 0
+    },
+    {
+      "mk": "2024-06",
+      "entreprise": "Atelier Alpha",
+      "brut": 3487,
+      "net": 2720,
+      "cotSal": 767,
+      "indem": 120,
+      "retenues": 0
+    },
+    {
+      "mk": "2024-07",
+      "entreprise": "Atelier Alpha",
+      "brut": 3532,
+      "net": 2755,
+      "cotSal": 777,
+      "indem": 45,
+      "retenues": 0
+    },
+    {
+      "mk": "2024-08",
+      "entreprise": "Atelier Alpha",
+      "brut": 3532,
+      "net": 2755,
+      "cotSal": 777,
+      "indem": 45,
+      "retenues": 25
+    },
+    {
+      "mk": "2024-09",
+      "entreprise": "Atelier Alpha",
+      "brut": 3532,
+      "net": 2755,
+      "cotSal": 777,
+      "indem": 45,
+      "retenues": 0
+    },
+    {
+      "mk": "2024-10",
+      "entreprise": "Atelier Alpha",
+      "brut": 3532,
+      "net": 2755,
+      "cotSal": 777,
+      "indem": 45,
+      "retenues": 0
+    },
+    {
+      "mk": "2024-11",
+      "entreprise": "Atelier Alpha",
+      "brut": 3532,
+      "net": 2755,
+      "cotSal": 777,
+      "indem": 45,
+      "retenues": 0
+    },
+    {
+      "mk": "2024-12",
+      "entreprise": "Atelier Alpha",
+      "brut": 3532,
+      "net": 2755,
+      "cotSal": 777,
+      "indem": 120,
+      "retenues": 0
+    },
+    {
+      "mk": "2025-01",
+      "entreprise": "Atelier Alpha",
+      "brut": 3603,
+      "net": 2810,
+      "cotSal": 793,
+      "indem": 45,
+      "retenues": 0
+    },
+    {
+      "mk": "2025-02",
+      "entreprise": "Atelier Alpha",
+      "brut": 3603,
+      "net": 2810,
+      "cotSal": 793,
+      "indem": 45,
+      "retenues": 0
+    },
+    {
+      "mk": "2025-03",
+      "entreprise": "Atelier Alpha",
+      "brut": 3603,
+      "net": 2810,
+      "cotSal": 793,
+      "indem": 45,
+      "retenues": 0
+    },
+    {
+      "mk": "2025-04",
+      "entreprise": "Atelier Alpha",
+      "brut": 3603,
+      "net": 2810,
+      "cotSal": 793,
+      "indem": 45,
+      "retenues": 0
+    },
+    {
+      "mk": "2025-05",
+      "entreprise": "Atelier Alpha",
+      "brut": 3603,
+      "net": 2810,
+      "cotSal": 793,
+      "indem": 45,
+      "retenues": 0
+    },
+    {
+      "mk": "2025-06",
+      "entreprise": "Atelier Alpha",
+      "brut": 3603,
+      "net": 2810,
+      "cotSal": 793,
+      "indem": 120,
+      "retenues": 0
+    },
+    {
+      "mk": "2025-07",
+      "entreprise": "Studio Boréal",
+      "brut": 3660,
+      "net": 2855,
+      "cotSal": 805,
+      "indem": 45,
+      "retenues": 0
+    },
+    {
+      "mk": "2025-08",
+      "entreprise": "Studio Boréal",
+      "brut": 3660,
+      "net": 2855,
+      "cotSal": 805,
+      "indem": 45,
+      "retenues": 25
+    },
+    {
+      "mk": "2025-09",
+      "entreprise": "Studio Boréal",
+      "brut": 3660,
+      "net": 2855,
+      "cotSal": 805,
+      "indem": 45,
+      "retenues": 0
+    },
+    {
+      "mk": "2025-10",
+      "entreprise": "Studio Boréal",
+      "brut": 3660,
+      "net": 2855,
+      "cotSal": 805,
+      "indem": 45,
+      "retenues": 0
+    },
+    {
+      "mk": "2025-11",
+      "entreprise": "Studio Boréal",
+      "brut": 3660,
+      "net": 2855,
+      "cotSal": 805,
+      "indem": 45,
+      "retenues": 0
+    },
+    {
+      "mk": "2025-12",
+      "entreprise": "Studio Boréal",
+      "brut": 3660,
+      "net": 2855,
+      "cotSal": 805,
+      "indem": 120,
+      "retenues": 0
+    }
+  ],
+  "cotLast": [
+    [
+      "Retraite",
+      375
+    ],
+    [
+      "Santé",
+      115
+    ],
+    [
+      "Autres cotisations",
+      315
+    ]
+  ],
+  "patronLast": [
+    [
+      "Retraite",
+      520
+    ],
+    [
+      "Santé",
+      205
+    ],
+    [
+      "Autres contributions",
+      460
+    ]
+  ],
+  "lastMonth": "2025-12",
+  "inflation": [
+    {
+      "year": "2024",
+      "rate_annual": 2,
+      "rate_alimentation": 1.4,
+      "rate_services": 2.7,
+      "rate_energie": -0.8,
+      "rate_transports": 2.1,
+      "rate_produits_manufactures": -0.2
+    },
+    {
+      "year": "2025",
+      "rate_annual": 1,
+      "rate_alimentation": 1.3,
+      "rate_services": 2.2,
+      "rate_energie": -2.5,
+      "rate_transports": 1.1,
+      "rate_produits_manufactures": -0.4
+    }
+  ],
+  "smic": [
+    {
+      "year": "2024",
+      "net_monthly": 1398.69,
+      "date_effective": "01/01/2024"
+    },
+    {
+      "year": "2025",
+      "net_monthly": 1426.3,
+      "date_effective": "01/01/2025"
+    }
+  ],
+  "inflationByCategory": [
+    {
+      "year": "2024",
+      "rate_annual": 2,
+      "rate_alimentation": 1.4,
+      "rate_services": 2.7,
+      "rate_energie": -0.8,
+      "rate_transports": 2.1,
+      "rate_produits_manufactures": -0.2
+    },
+    {
+      "year": "2025",
+      "rate_annual": 1,
+      "rate_alimentation": 1.3,
+      "rate_services": 2.2,
+      "rate_energie": -2.5,
+      "rate_transports": 1.1,
+      "rate_produits_manufactures": -0.4
+    }
+  ]
+}

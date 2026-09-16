@@ -1,0 +1,53 @@
+{
+  "balanceMode": "direct",
+  "accountKinds": {
+    "Banque Horizon - Courant": "Courant",
+    "Banque Nova - Compte joint": "Courant",
+    "Banque Équilibre - Compte joint": "Courant",
+    "Carte repas - Titres restaurant": "Courant",
+    "Banque Nova - Épargne": "Épargne"
+  },
+  "loan": {
+    "account": "Banque Équilibre - Compte joint",
+    "principal": 180000,
+    "payment": 932.19,
+    "terms": 240
+  },
+  "init": {
+    "Banque Horizon - Courant": 4200,
+    "Banque Nova - Compte joint": 2300,
+    "Banque Équilibre - Compte joint": 3500,
+    "Carte repas - Titres restaurant": 80,
+    "Banque Nova - Épargne": 8500
+  },
+  "transfers": [
+    "Transfert Horizon vers Équilibre",
+    "Transfert Horizon vers Nova",
+    "Épargne Horizon",
+    "Retrait épargne"
+  ],
+  "comptes": [
+    "Banque Horizon - Courant",
+    "Banque Nova - Compte joint",
+    "Banque Équilibre - Compte joint",
+    "Carte repas - Titres restaurant",
+    "Banque Nova - Épargne"
+  ],
+  "coverage": {
+    "dateMin": "2024-01-01",
+    "dateMax": "2025-12-31"
+  },
+  "colors": {
+    "comptes": {
+      "Banque Horizon - Courant": "#2563eb",
+      "Banque Nova - Compte joint": "#059669",
+      "Banque Équilibre - Compte joint": "#d97706",
+      "Carte repas - Titres restaurant": "#dc2626",
+      "Banque Nova - Épargne": "#0891b2"
+    },
+    "entreprises": {
+      "Atelier Alpha": "#8b5cf6",
+      "Studio Boréal": "#22c55e"
+    }
+  }
+}

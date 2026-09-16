@@ -1,0 +1,64 @@
+{
+  "budgets": [
+    {
+      "cat2": "Alimentation",
+      "target": 430,
+      "active": true,
+      "updated_at": null
+    },
+    {
+      "cat2": "Assurances",
+      "target": 95,
+      "active": true,
+      "updated_at": null
+    },
+    {
+      "cat2": "Habillement",
+      "target": 45,
+      "active": true,
+      "updated_at": null
+    },
+    {
+      "cat2": "Immobilier",
+      "target": 935,
+      "active": true,
+      "updated_at": null
+    },
+    {
+      "cat2": "Impots",
+      "target": 120,
+      "active": true,
+      "updated_at": null
+    },
+    {
+      "cat2": "Logement",
+      "target": 110,
+      "active": true,
+      "updated_at": null
+    },
+    {
+      "cat2": "Loisir",
+      "target": 55,
+      "active": true,
+      "updated_at": null
+    },
+    {
+      "cat2": "Santé",
+      "target": 30,
+      "active": true,
+      "updated_at": null
+    },
+    {
+      "cat2": "Télécommunications",
+      "target": 45,
+      "active": true,
+      "updated_at": null
+    },
+    {
+      "cat2": "Transport",
+      "target": 80,
+      "active": true,
+      "updated_at": null
+    }
+  ]
+}

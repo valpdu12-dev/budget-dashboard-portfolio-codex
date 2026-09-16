@@ -1,0 +1,48 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── Smooth scroll global ──────────────────────────────────────────────── */
+html { scroll-behavior: smooth; }
+
+/* ── Scrollbar custom (dark theme) ─────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: #111827; }
+::-webkit-scrollbar-thumb { background: #374151; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #4B5563; }
+
+/* ── Component layer ───────────────────────────────────────────────────── */
+@layer components {
+  .card {
+    @apply bg-surface border border-border rounded-xl p-5 animate-fade-slide
+           transition-[transform,box-shadow] duration-300 ease-out;
+  }
+  .card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+  }
+  .kpi-card {
+    @apply card flex flex-col gap-1 animate-scale-in;
+  }
+}
+
+/* ── Stagger delays (animation-delay pour grilles KPI) ─────────────────── */
+@layer utilities {
+  .stagger-grid > *:nth-child(1)  { animation-delay: 0ms; }
+  .stagger-grid > *:nth-child(2)  { animation-delay: 50ms; }
+  .stagger-grid > *:nth-child(3)  { animation-delay: 100ms; }
+  .stagger-grid > *:nth-child(4)  { animation-delay: 150ms; }
+  .stagger-grid > *:nth-child(5)  { animation-delay: 200ms; }
+  .stagger-grid > *:nth-child(6)  { animation-delay: 250ms; }
+  .stagger-grid > *:nth-child(7)  { animation-delay: 300ms; }
+  .stagger-grid > *:nth-child(8)  { animation-delay: 350ms; }
+  .stagger-grid > *:nth-child(9)  { animation-delay: 400ms; }
+  .stagger-grid > *:nth-child(10) { animation-delay: 450ms; }
+  .stagger-grid > *:nth-child(11) { animation-delay: 500ms; }
+  .stagger-grid > *:nth-child(12) { animation-delay: 550ms; }
+
+  /* Recharts chart containers — subtle entry */
+  .chart-enter .recharts-wrapper {
+    animation: fadeSlideIn 0.5s ease-out 0.2s both;
+  }
+}
