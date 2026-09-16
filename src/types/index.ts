@@ -7,12 +7,18 @@ export interface Transaction {
   transferId?: string;
   /** Rôle résolu depuis le catalogue, jamais déduit du libellé après migration. */
   role?: TransactionRole;
+  /**
+   * Exception de compatibilité pour les anciens classeurs : un mouvement peut
+   * équilibrer un transfert tout en restant une dépense dans les KPI (ou
+   * inversement pour sa contrepartie technique).
+   */
+  kpiRole?: TransactionRole;
   /** Présent uniquement dans une projection d'affichage ; montant reste brut au stockage. */
   bankAmount?: number;
   compte: string;         // "Banque Horizon - Courant", "Banque Nova - Compte joint", etc.
   type: string;           // "CB", "Virement", "Prélèvement", etc.
   date: string;           // "2025-01-15"
-  montant: number;        // Montant positif (valeur absolue)
+  montant: number;        // Montant bancaire ; signé uniquement pour un ancien classeur compatible
   cat1: string;           // "Dépense Fixe", "Dépense Courante", "Dépense Occasionnelle"
   cat2: string;           // Sous-catégorie niveau 2 (ou "")
   cat3: string;           // Libellé détaillé / niveau 3 (ou "")
@@ -31,6 +37,8 @@ export interface AccountDefinition {
   initialBalance: number;
   /** Pourcentage personnel de 0 à 100, appliqué une seule fois. */
   share: number;
+  /** Faux pour un compte technique nécessaire aux transferts mais absent des soldes affichés. */
+  includeInBalance?: boolean;
 }
 export interface TypeDefinition { id: string; label: string; role: TransactionRole }
 export type Perspective = "bank" | "personal";
@@ -102,6 +110,8 @@ export interface Config {
   accounts?: AccountDefinition[];
   types?: TypeDefinition[];
   perspective?: Perspective;
+  /** Reproduit les règles de calcul du dashboard historique pour son classeur natif. */
+  compatibility?: "legacy-dashboard-v1";
   init: Record<string, number>;
   /** Chaque mouvement affecte exclusivement le compte déclaré dans l'import. */
   balanceMode?: "direct";

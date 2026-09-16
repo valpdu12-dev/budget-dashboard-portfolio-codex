@@ -10,7 +10,7 @@ export function transactionRole(t: Transaction): TransactionRole {
   if (t.type === "Intérêt du prêt") return "loan-interest";
   return "ordinary";
 }
-export const isTransfer = (t: Transaction) => transactionRole(t) === "transfer";
+export const isTransfer = (t: Transaction) => (t.kpiRole ?? transactionRole(t)) === "transfer";
 export const typeKey = (t: Transaction) => t.typeId ?? t.type;
 export const matchesType = (t: Transaction, key: string) => typeKey(t) === key || (!t.typeId && t.type === key);
 export function typeLabel(config: Config | null, id: string): string {

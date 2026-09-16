@@ -14,15 +14,20 @@ export function configurationErrors(config: Config, transactions: Transaction[])
   const accounts = config.accounts, types = config.types;
   if (!Array.isArray(accounts) || !accounts.length || !Array.isArray(types) || !types.length) return ["Catalogues de comptes et de types manquants."];
   if (accounts.some(a => !a || !validId(a.id) || !validCatalogLabel(a.label) || !["Courant", "Épargne"].includes(a.kind)
-    || !finiteMoney(a.initialBalance) || !Number.isFinite(a.share) || a.share < 0 || a.share > 100 || Math.abs(a.share - cents(a.share)) > 1e-6)) errors.push("Chaque compte doit avoir un nom valide, un solde en centimes et une quote-part entre 0 et 100 % (deux décimales maximum).");
+    || !finiteMoney(a.initialBalance) || !Number.isFinite(a.share) || a.share < 0 || a.share > 100 || Math.abs(a.share - cents(a.share)) > 1e-6
+    || (a.includeInBalance !== undefined && typeof a.includeInBalance !== "boolean"))) errors.push("Chaque compte doit avoir un nom valide, un solde en centimes et une quote-part entre 0 et 100 % (deux décimales maximum).");
   if (types.some(t => !t || !validId(t.id) || !validCatalogLabel(t.label) || !roles.includes(t.role))) errors.push("Chaque type doit avoir un nom et un rôle valides.");
   if (new Set(accounts.map(a => a.id)).size !== accounts.length || new Set(accounts.map(a => a.label)).size !== accounts.length
     || new Set(types.map(t => t.id)).size !== types.length || new Set(types.map(t => t.label)).size !== types.length) errors.push("Les identifiants et les noms doivent être uniques dans chaque catalogue.");
   if (!["bank", "personal"].includes(config.perspective ?? "bank")) errors.push("Perspective de calcul inconnue.");
+  if (config.compatibility !== undefined && config.compatibility !== "legacy-dashboard-v1") errors.push("Mode de compatibilité inconnu.");
   if (errors.length) return errors;
   const accountIds = new Set(accounts.map(a => a.id));
   const roleById = new Map(types.map(t => [t.id, t.role]));
-  if (transactions.some(t => !accountIds.has(t.accountId ?? "") || !roleById.has(t.typeId ?? "") || !finiteMoney(t.montant) || t.montant < 0 || t.bankAmount !== undefined)) errors.push("Une transaction référence un compte/type absent, ou son montant bancaire est invalide.");
+  if (transactions.some(t => !accountIds.has(t.accountId ?? "") || !roleById.has(t.typeId ?? "") || !finiteMoney(t.montant)
+    || (t.montant < 0 && config.compatibility !== "legacy-dashboard-v1")
+    || (t.kpiRole !== undefined && (config.compatibility !== "legacy-dashboard-v1" || !roles.includes(t.kpiRole)))
+    || t.bankAmount !== undefined)) errors.push("Une transaction référence un compte/type absent, ou son montant bancaire est invalide.");
   const groups = new Map<string, Transaction[]>();
   for (const t of transactions) {
     if (roleById.get(t.typeId ?? "") !== "transfer") continue;

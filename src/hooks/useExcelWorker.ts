@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useDataStore } from "@/stores/useDataStore";
 import { useFilterStore } from "@/stores/useFilterStore";
-import { saveImport } from "@/services/importPersistence";
+import { persistCurrentImport } from "@/services/configurationPersistence";
 import { isImportDataset } from "@/services/importValidation";
 import type { ImportDataset, ValidationReport } from "@/services/workbookImport";
 export type { ValidationReport } from "@/services/workbookImport";
@@ -61,7 +61,9 @@ export function useExcelWorker(): ExcelWorkerState {
     state.setImportedDataset(pendingData, fileName, importedAt);
     useFilterStore.getState().clearAllFilters();
     useFilterStore.setState({ cat1Filter: "all", showTransfers: false });
-    const saved = saveImport({ ...pendingData, storageVersion: 2, fileName, importedAt });
+    // Persiste l'état réellement appliqué : pour un ancien classeur réimporté,
+    // il peut contenir les objectifs budgétaires déjà paramétrés localement.
+    const saved = persistCurrentImport();
     state.setStorageNotice(saved ? null : "Données affichées pour cette session. Le stockage local est indisponible ou saturé : elles ne seront pas conservées après fermeture.");
     return true;
   }, [pendingData, validation]);

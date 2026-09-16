@@ -154,11 +154,14 @@ export function Header() {
           ))}
         </div>
 
-        {config?.accounts && <button type="button" aria-pressed={config.perspective === "personal"}
+        {config?.accounts && config.compatibility !== "legacy-dashboard-v1" && <button type="button" aria-pressed={config.perspective === "personal"}
           onClick={() => applyConfiguration({ ...config, perspective: config.perspective === "personal" ? "bank" : "personal" })}
           className="min-h-tap rounded-full px-3 border border-indigo/40 text-xs text-indigo-text">
           {config.perspective === "personal" ? "Ma quote-part" : "Montants bancaires"}
         </button>}
+        {config?.compatibility === "legacy-dashboard-v1" && <span className="inline-flex min-h-tap items-center rounded-full px-3 border border-indigo/40 text-xs text-indigo-text">
+          Calcul historique
+        </span>}
         {/* Toggle inclure transferts */}
         <button
           onClick={() => setShowTransfers(!showTransfers)}

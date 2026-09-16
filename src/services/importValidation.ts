@@ -12,6 +12,7 @@ export function isImportDataset(v: unknown): v is ImportDataset {
   if (!record(v) || (v.schemaVersion !== 1 && v.schemaVersion !== 2) || !record(v.config) || !record(v.config.init)
     || v.config.balanceMode !== "direct" || !strings(v.config.comptes) || !v.config.comptes.length
     || !record(v.config.coverage) || !record(v.salary) || !record(v.budgets)) return false;
+  if (v.config.compatibility !== undefined && v.config.compatibility !== "legacy-dashboard-v1") return false;
   const { dateMin, dateMax } = v.config.coverage;
   if (typeof dateMin !== "string" || typeof dateMax !== "string" || !validISODate(dateMin) || !validISODate(dateMax) || dateMin > dateMax) return false;
   const accounts = v.config.comptes;
@@ -22,7 +23,10 @@ export function isImportDataset(v: unknown): v is ImportDataset {
     || accounts.some(a => ["Total", "__proto__", "constructor", "prototype"].includes(a) || !num(init[a]))) return false;
   if (!Array.isArray(v.transactions) || !v.transactions.length || !v.transactions.every(t => record(t)
     && typeof t.date === "string" && validISODate(t.date) && t.date >= dateMin && t.date <= dateMax
-    && t.monthKey === t.date.slice(0, 7) && nonnegative(t.montant) && t.bankAmount === undefined
+    && t.monthKey === t.date.slice(0, 7) && num(t.montant)
+    && (t.montant >= 0 || v.config.compatibility === "legacy-dashboard-v1") && t.bankAmount === undefined
+    && (t.kpiRole === undefined || (v.config.compatibility === "legacy-dashboard-v1"
+      && ["ordinary", "transfer", "loan-capital", "loan-interest"].includes(String(t.kpiRole))))
     && (t.transferId === undefined || (typeof t.transferId === "string" && t.transferId.length > 0))
     && typeof t.compte === "string" && (v.schemaVersion === 2 || accounts.includes(t.compte)) && ["Débit", "Crédit"].includes(String(t.dc))
     && ["label", "type", "cat1", "cat2", "cat3", "cat4", "ville"].every(k => typeof t[k] === "string"))) return false;

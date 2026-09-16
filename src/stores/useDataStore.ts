@@ -83,12 +83,19 @@ export const useDataStore = create<DataState>((set) => ({
   }),
   setImportedDataset: (input, fileName, importedAt) => {
     const dataset = migrateDataset(input);
-    set({
-    transactions: dataset.transactions, salary: dataset.salary, config: dataset.config, budgets: dataset.budgets,
-    status: "success", error: null, isFromUpload: true, dataOrigin: "upload",
-    coverage: dataset.config.coverage ? declareDataCoverage(dataset.config.coverage.dateMin, dataset.config.coverage.dateMax) : inferDataCoverage(dataset.transactions),
-    importedAt, importFileName: fileName, storageNotice: null,
-  }); },
+    set(state => {
+      const importedBudgetsAreEmpty = dataset.budgets.budgets.length === 0
+        && (dataset.budgets.personalBudgets?.length ?? 0) === 0;
+      const keepConfiguredBudgets = dataset.config.compatibility === "legacy-dashboard-v1"
+        && importedBudgetsAreEmpty && state.importFileName === fileName && state.budgets;
+      return {
+        transactions: dataset.transactions, salary: dataset.salary, config: dataset.config,
+        budgets: keepConfiguredBudgets ? state.budgets : dataset.budgets,
+        status: "success", error: null, isFromUpload: true, dataOrigin: "upload",
+        coverage: dataset.config.coverage ? declareDataCoverage(dataset.config.coverage.dateMin, dataset.config.coverage.dateMax) : inferDataCoverage(dataset.transactions),
+        importedAt, importFileName: fileName, storageNotice: null,
+      };
+    }); },
   setStorageNotice: (storageNotice) => set({ storageNotice }),
   setBudgets: (budgets) => set({ budgets }),
   setConfiguration: (config, transactions) => set({ config, transactions }),

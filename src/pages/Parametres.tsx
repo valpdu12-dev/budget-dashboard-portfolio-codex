@@ -20,6 +20,7 @@ export default function Parametres() {
   useEffect(() => { setDraft(config ? clone(config) : null); setErrors([]); }, [config]);
   if (status !== "success" || !draft?.accounts || !draft.types) return <SkeletonPage />;
   const accounts = draft.accounts;
+  const visibleAccounts = accounts.filter(account => account.includeInBalance !== false);
   const types = draft.types;
   const save = (event: FormEvent) => {
     event.preventDefault();
@@ -41,17 +42,19 @@ export default function Parametres() {
     <p className="text-sm text-text-sec">Les noms peuvent changer sans modifier les identifiants ni les montants. Pour ajouter un compte, un type ou des transactions, importez un classeur complet. Les réglages restent dans ce navigateur.</p>
     <fieldset className="card flex flex-col gap-3">
       <legend className="font-semibold text-text">Vue des montants</legend>
-      <label className="text-sm text-text">Montants affichés
+      {draft.compatibility === "legacy-dashboard-v1" ? <p className="text-sm text-text-sec">
+        Mode historique actif : l’application reprend les montants calculés et les règles KPI de l’ancien classeur, sans modifier celui-ci.
+      </p> : <><label className="text-sm text-text">Montants affichés
         <select className={inputClass} value={draft.perspective ?? "bank"} onChange={e => setDraft({ ...draft, perspective: e.target.value as "bank" | "personal" })}>
           <option value="bank">Montants bancaires</option><option value="personal">Ma quote-part</option>
         </select>
       </label>
-      <p className="text-xs text-text-sec">En vue personnelle, chaque mouvement et chaque solde initial sont multipliés une fois par la quote-part du compte. Les objectifs budgétaires sont propres à chaque vue. Salaire et suivi du prêt restent contractuels. Une modification de quote-part s’applique à tout l’historique ; les changements de participation dans le temps ne sont pas pris en charge.</p>
+      <p className="text-xs text-text-sec">En vue personnelle, chaque mouvement et chaque solde initial sont multipliés une fois par la quote-part du compte. Les objectifs budgétaires sont propres à chaque vue. Salaire et suivi du prêt restent contractuels. Une modification de quote-part s’applique à tout l’historique ; les changements de participation dans le temps ne sont pas pris en charge.</p></>}
     </fieldset>
     <fieldset className="card flex flex-col gap-4">
       <legend className="font-semibold text-text">Comptes</legend>
       <p className="text-xs text-text-sec">Solde initial : solde juste avant le {coverage.dateMin ?? "début de couverture"}. Un solde négatif est accepté. Une quote-part de 0 % exclut le compte des montants personnels.</p>
-      {accounts.map((a, i) => <div key={a.id} className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 border-b border-border pb-4 last:border-0">
+      {visibleAccounts.map((a, i) => <div key={a.id} className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 border-b border-border pb-4 last:border-0">
         <label className="text-sm text-text">Nom du compte {i + 1}<input className={inputClass} value={a.label} maxLength={100} onChange={e => setDraft({ ...draft, accounts: accounts.map(b => b.id === a.id ? { ...b, label: e.target.value } : b) })} /></label>
         <label className="text-sm text-text">Nature du compte {i + 1}<select className={inputClass} value={a.kind} onChange={e => setDraft({ ...draft, accounts: accounts.map(b => b.id === a.id ? { ...b, kind: e.target.value as "Courant" | "Épargne" } : b) })}><option>Courant</option><option>Épargne</option></select></label>
         <label className="text-sm text-text">Solde initial du compte {i + 1} (€)<input className={inputClass} type="number" step="0.01" value={numericValue(a.initialBalance)} onChange={e => setDraft({ ...draft, accounts: accounts.map(b => b.id === a.id ? { ...b, initialBalance: numeric(e.target.value) } : b) })} /></label>
@@ -68,9 +71,9 @@ export default function Parametres() {
     </fieldset>
     <fieldset className="card flex flex-col gap-3">
       <legend className="font-semibold text-text">Suivi du prêt</legend>
-      <label className="flex items-center gap-2 text-sm text-text"><input type="checkbox" checked={Boolean(draft.loan)} onChange={e => setDraft({ ...draft, loan: e.target.checked ? { account: accounts[0].id, principal: 0, payment: 0, terms: 240 } : undefined })} /> Activer le suivi du prêt</label>
+      <label className="flex items-center gap-2 text-sm text-text"><input type="checkbox" checked={Boolean(draft.loan)} onChange={e => setDraft({ ...draft, loan: e.target.checked ? { account: visibleAccounts[0].id, principal: 0, payment: 0, terms: 240 } : undefined })} /> Activer le suivi du prêt</label>
       {draft.loan && <>
-        <label className="text-sm text-text">Compte du prêt<select className={inputClass} value={draft.loan.account} onChange={e => setDraft({ ...draft, loan: { ...draft.loan!, account: e.target.value } })}>{accounts.map(a => <option key={a.id} value={a.id}>{a.label}</option>)}</select></label>
+        <label className="text-sm text-text">Compte du prêt<select className={inputClass} value={draft.loan.account} onChange={e => setDraft({ ...draft, loan: { ...draft.loan!, account: e.target.value } })}>{visibleAccounts.map(a => <option key={a.id} value={a.id}>{a.label}</option>)}</select></label>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <label className="text-sm text-text">Capital initial (€)<input className={inputClass} type="number" step="0.01" value={numericValue(draft.loan.principal)} onChange={e => setDraft({ ...draft, loan: { ...draft.loan!, principal: numeric(e.target.value) } })} /></label>
           <label className="text-sm text-text">Mensualité hors assurance (€)<input className={inputClass} type="number" step="0.01" value={numericValue(draft.loan.payment)} onChange={e => setDraft({ ...draft, loan: { ...draft.loan!, payment: numeric(e.target.value) } })} /></label>

@@ -90,6 +90,7 @@ export default function Comptes() {
 
   // Badge alertes budget (QW4) — postes en dépassement (warning + over)
   const { kpis: budgetKpis } = useBudgetData();
+  const hasDefinedBudget = budgetKpis.complianceRate !== null;
 
   // Données du graphe soldes + comparatif N-1 (prev_Total) pour le tooltip (QW2)
   const lineData = useMemo(
@@ -225,7 +226,7 @@ export default function Comptes() {
         >
           <div
             className={`shrink-0 w-10 h-10 rounded-lg flex items-center justify-center ${
-              budgetKpis.overrunCount > 0 ? "bg-red/15 text-red" : "bg-green/15 text-green"
+              budgetKpis.overrunCount > 0 ? "bg-red/15 text-red" : hasDefinedBudget ? "bg-green/15 text-green" : "bg-border text-text-sec"
             }`}
           >
             <AlertTriangle size={20} />
@@ -234,11 +235,11 @@ export default function Comptes() {
             <span className="text-text-sec text-xs">Alertes budget</span>
             <span
               className="text-xl font-title font-bold tabular-nums"
-              style={{ color: budgetKpis.overrunCount > 0 ? "#EF4444" : "#10B981" }}
+              style={{ color: budgetKpis.overrunCount > 0 ? "#EF4444" : hasDefinedBudget ? "#10B981" : "#9CA3AF" }}
             >
               {budgetKpis.overrunCount > 0
                 ? `${budgetKpis.overrunCount} poste${budgetKpis.overrunCount > 1 ? "s" : ""} en dépassement`
-                : "Aucun dépassement"}
+                : hasDefinedBudget ? "Aucun dépassement" : "Aucun budget défini"}
             </span>
             <span className="text-text-sec text-xs">Voir le budget mensuel →</span>
           </div>

@@ -53,11 +53,13 @@ export function useSavingsData() {
   // ─── Transactions épargne — entrées ────────────────────────────
   const epargneTx = useMemo(
     () => txSource.filter(
-      (t) => savingsAccounts ? savingsAccounts.has(t.compte) && t.dc === "Crédit" : (EPARGNE_TYPES as readonly string[]).includes(t.type)
+      (t) => savingsAccounts ? (savingsAccounts.has(t.compte) && t.dc === "Crédit")
+        || (config?.compatibility === "legacy-dashboard-v1" && t.role === "loan-capital" && t.dc === "Débit")
+        : (EPARGNE_TYPES as readonly string[]).includes(t.type)
         && t.dc === "Débit"
         && t.compte !== "Retrait épargne"
     ),
-    [txSource, savingsAccounts]
+    [txSource, savingsAccounts, config?.compatibility]
   );
 
   // ─── Transactions épargne — sorties ────────────────────────────
