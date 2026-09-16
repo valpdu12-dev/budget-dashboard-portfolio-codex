@@ -73,3 +73,50 @@ describe("Modèle Budget v1", () => {
     expect(parseWorkbook(wb).validation.issues.filter(i => i.severity === "error").length).toBeGreaterThanOrEqual(2);
   });
 });
+
+describe("Compatibilité avec l'ancien classeur Budget", () => {
+  function legacyWorkbook() {
+    const wb = XLSX.utils.book_new();
+    const salaryRows: unknown[][] = Array.from({ length: 11 }, () => []);
+    salaryRows.push(["Ordre", "Entreprise", "Détail", "Qui", "Catégorie", "Designation", "Date", "Montant"]);
+    salaryRows.push([1, "Employeur", "Salaire", "Salarié", "SALAIRE", "Rémunération brute", 45658, 3500]);
+    salaryRows.push([2, "Employeur", "Somme", "Salarié", "*COTISAT.SALARIALES.(2)", "Cotisations", 45658, 700]);
+    salaryRows.push([3, "Employeur", "Somme", "Salarié", "*AUTRES RETENUES....(4)", "Retenues", 45658, 100]);
+    const salary = XLSX.utils.aoa_to_sheet(salaryRows);
+    salary.H13.f = "1000+2500";
+    XLSX.utils.book_append_sheet(wb, salary, "Fiche de Paie");
+
+    const txRows: unknown[][] = Array.from({ length: 17 }, () => []);
+    txRows.push(["Transaction", "Compte", "Type Dépense", "Date", "Montant", "Montant réel", "Catégorie 1", "Catégorie 22", "Catégorie 3", "Catégorie 4", "Prévisionnel", null, "Pays", "Ville", null, null, null, null, "Débit/Crédit"]);
+    txRows.push(["Courses partagées", "Compte familial - Part commune", "Courses", 45658, 100, 50, "Dépense Courante", "Alimentation", "Marchand", "", "", "", "France", "Paris", null, null, null, null, "Débit"]);
+    txRows.push(["Transfert", "Compte commun", "Transfert principal vers commun", 45659, 200, 100, "Dépense Occasionnelle", "", "", "", "", "", "France", "Paris", null, null, null, null, "Crédit"]);
+    txRows.push(["Prévision", "Compte principal - Courant", "Courses", 45660, 10, 10, "Dépense Courante", "Alimentation", "", "", "x", "", "France", "Paris", null, null, null, null, "Débit"]);
+    const tx = XLSX.utils.aoa_to_sheet(txRows);
+    tx.E19.v = -100;
+    tx.F19.v = -50;
+    tx.F19.f = "E19/2";
+    XLSX.utils.book_append_sheet(wb, tx, "Transactions 2025");
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([
+      ["Comptes", "Compte principal - Courant", "Compte commun"],
+      ["Restant M", 900, 300],
+    ]), "Visualisation");
+    return wb;
+  }
+
+  it("lit les valeurs calculées, adapte les comptes techniques et reconstruit les transferts", () => {
+    const result = parseWorkbook(legacyWorkbook());
+    expect(result.validation.ok).toBe(true);
+    expect(result.validation.nbTransactions).toBe(2);
+    expect(result.validation.issues).toEqual([expect.objectContaining({ severity: "warning", message: expect.stringContaining("Ancien format reconnu") })]);
+    expect(result.dataset.transactions.filter(transaction => transaction.transferId)).toHaveLength(2);
+    expect(result.dataset.transactions.find(transaction => transaction.label === "Courses partagées")?.compte).toBe("Compte principal - Courant");
+    expect(result.dataset.salary.months[0]).toEqual(expect.objectContaining({ brut: 3500, net: 2700 }));
+    expect(isImportDataset(result.dataset)).toBe(true);
+  });
+
+  it("continue de refuser les formules dans le modèle public", () => {
+    const wb = importWorkbook();
+    wb.Sheets.Transactions.E2.f = "20+30";
+    expect(parseWorkbook(wb).validation.issues).toContainEqual(expect.objectContaining({ message: expect.stringContaining("sans formule") }));
+  });
+});

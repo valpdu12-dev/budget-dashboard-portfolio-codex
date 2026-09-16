@@ -46,7 +46,7 @@ Sans Salaires, la vue Salaire et les cartes liées au salaire disparaissent. San
 
 Pour le prêt, chaque mois présent doit comporter un débit de type Crédit Immobilier (part capital) et un débit Intérêt du prêt (part intérêts), sur le compte déclaré. Leur somme doit égaler la mensualité hors assurance. Le suivi reconstruit un échéancier théorique à partir des paramètres saisis. Il ne prend pas en charge les prêts variables, à taux nul, multiples ou comportant des remboursements anticipés historiques. Le simulateur reste indicatif.
 
-Il faut adapter les exports bancaires et les anciens classeurs au modèle ; la correspondance automatique des colonnes n'est pas fournie. Une seule devise (EUR) et une seule ligne de salaire totalisé par mois sont acceptées. Les retenues incluent les montants nécessaires pour retrouver le net retenu, dont l'impôt si vous utilisez le net après prélèvement.
+Il faut adapter les exports bancaires au modèle ; la correspondance automatique de leurs colonnes n'est pas fournie. L'ancien classeur Budget avec les onglets `Fiche de Paie` et `Transactions AAAA` est reconnu automatiquement : l'importeur lit les valeurs calculées enregistrées par Excel et adapte ses comptes techniques. Une seule devise (EUR) et une seule ligne de salaire totalisé par mois sont acceptées dans le modèle public. Les retenues incluent les montants nécessaires pour retrouver le net retenu, dont l'impôt si vous utilisez le net après prélèvement.
 
 ## Confidentialité et restauration
 

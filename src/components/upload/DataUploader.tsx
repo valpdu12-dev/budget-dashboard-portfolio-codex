@@ -387,7 +387,7 @@ export function DataUploader() {
               <Download size={16} /> Télécharger le modèle Excel avec exemples fictifs
             </a>
             <p>Remplacez les exemples dans Comptes et Transactions. Déclarez la couverture de vos relevés et les soldes avant cette période. Salaires, Budgets et Prêt sont facultatifs : videz leurs lignes si vous n'avez pas ces données.</p>
-            <p>Les exports bancaires et les anciens classeurs doivent être adaptés à ce modèle. Lisez l'onglet Notice avant de remplir le fichier.</p>
+            <p>Le modèle public est recommandé. Les anciens classeurs Budget avec les onglets Fiche de Paie et Transactions AAAA sont également reconnus automatiquement. Lisez l'onglet Notice avant de remplir un nouveau fichier.</p>
           </div>
 
           {/* Zone drag & drop */}

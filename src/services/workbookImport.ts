@@ -4,6 +4,7 @@ import { validISODate } from "@/utils/importDate";
 import { loanSchedule, closestLoanTerm } from "@/utils/loanRate";
 import { validCatalogLabel, configurationErrors } from "./configurationValidation";
 import { migrateDataset } from "./datasetMigration";
+import { isLegacyWorkbook, parseLegacyWorkbook } from "./legacyWorkbookImport";
 
 export interface ImportDataset {
   schemaVersion: 1 | 2;
@@ -48,6 +49,7 @@ function dateValue(v: unknown, date1904: boolean): string {
 }
 /** Une cellule vide ou du texte ne devient jamais un montant nul. */
 export function parseWorkbook(wb: XLSX.WorkBook): { dataset: ImportDataset; validation: ValidationReport } {
+  if (isLegacyWorkbook(wb)) return parseLegacyWorkbook(wb);
   const issues: ImportIssue[] = [];
   const issue = (sheet: string, row: number, column: string, message: string, severity: ImportIssue["severity"] = "error") => {
     issues.push({ sheet, row, column, message, severity });

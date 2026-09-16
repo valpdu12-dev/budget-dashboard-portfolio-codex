@@ -27,7 +27,7 @@ export function isImportDataset(v: unknown): v is ImportDataset {
     && typeof t.compte === "string" && (v.schemaVersion === 2 || accounts.includes(t.compte)) && ["Débit", "Crédit"].includes(String(t.dc))
     && ["label", "type", "cat1", "cat2", "cat3", "cat4", "ville"].every(k => typeof t[k] === "string"))) return false;
   if (!Array.isArray(v.salary.months) || !v.salary.months.every(s => record(s) && typeof s.mk === "string"
-    && validISODate(`${s.mk}-01`) && s.mk >= dateMin.slice(0, 7) && s.mk <= dateMax.slice(0, 7)
+    && validISODate(`${s.mk}-01`)
     && typeof s.entreprise === "string" && ["brut", "net", "cotSal", "indem", "retenues"].every(k => nonnegative(s[k])))) return false;
   const tuples = (a: unknown) => Array.isArray(a) && a.every(t => Array.isArray(t) && t.length === 2 && typeof t[0] === "string" && num(t[1]));
   if (!tuples(v.salary.cotLast) || !tuples(v.salary.patronLast)) return false;

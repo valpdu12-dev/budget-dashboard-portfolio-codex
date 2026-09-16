@@ -80,7 +80,7 @@ Le modèle [Budget v1](public/modeles/Budget_v1.xlsx) est téléchargeable depui
 
 Salaires, Budgets et Prêt sont facultatifs. Transactions peut couvrir plusieurs années. Le paquet importé remplace entièrement la démo et est mémorisé localement, y compris ses budgets modifiés. Un bouton permet de l'effacer et de revenir à la démo. Le lecteur utilise SheetJS CE 0.20.3 fourni depuis sa distribution officielle et inclus dans le build, sans chargement distant à l'exécution.
 
-Voir le [guide d'import](docs/IMPORT_EXCEL_V1.md). Les exports bancaires doivent être adaptés au modèle ; il n'existe pas encore de correspondance automatique des colonnes. Les identifiants stables, noms personnalisables, rôles de types et quotes-parts sont disponibles dans **Paramètres**. La vue bancaire et la vue personnelle ont des objectifs budgétaires distincts. Voir le [guide de test du lot C](docs/PARAMETRES_ET_RECETTE_LOT_C.md), également accessible depuis l’application.
+Voir le [guide d'import](docs/IMPORT_EXCEL_V1.md). Les exports bancaires doivent être adaptés au modèle public. L'ancien classeur Budget avec les onglets `Fiche de Paie` et `Transactions AAAA` est toutefois reconnu automatiquement, y compris lorsque ses colonnes calculées contiennent des formules. Les identifiants stables, noms personnalisables, rôles de types et quotes-parts sont disponibles dans **Paramètres**. La vue bancaire et la vue personnelle ont des objectifs budgétaires distincts. Voir le [guide de test du lot C](docs/PARAMETRES_ET_RECETTE_LOT_C.md), également accessible depuis l’application.
 
 ## Limites publiques
 
