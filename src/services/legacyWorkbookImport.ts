@@ -310,7 +310,7 @@ export function parseLegacyWorkbook(workbook: XLSX.WorkBook): { dataset: ImportD
     dataset,
     validation: {
       ok: !issues.some(issue => issue.severity === "error"), issues,
-      sheets: ["Fiche de Paie", ...parsed.sheets], hasLoan: false,
+      sheets: ["Fiche de Paie", ...parsed.sheets], hasLoan: false, hasInflation: false,
       nbTransactions: sourceTransactions.length, dateMin, dateMax,
       nbMois: new Set(sourceTransactions.map(transaction => transaction.monthKey)).size,
       comptes: visibleAccountLabels, totalDebits, totalCredits, net: round(totalCredits - totalDebits),

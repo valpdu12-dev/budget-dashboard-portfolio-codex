@@ -68,9 +68,23 @@ describe("Modèle Budget v1", () => {
       expect(parseWorkbook(wb).dataset.transactions[0].date).toBe("2025-01-10");
     }
   });
-  it("refuse un net de salaire incohérent et un prêt sans intérêts", () => {
+  it("accepte les rubriques salariales copiées du bulletin et refuse un prêt sans intérêts", () => {
     const wb = importWorkbook(); wb.Sheets.Salaires.D2.v = 3000; wb.Sheets.Transactions.E7.v = 0;
-    expect(parseWorkbook(wb).validation.issues.filter(i => i.severity === "error").length).toBeGreaterThanOrEqual(2);
+    const issues = parseWorkbook(wb).validation.issues;
+    expect(issues.some(i => i.sheet === "Salaires" && i.column === "Net")).toBe(false);
+    expect(issues.some(i => i.sheet === "Prêt" && i.severity === "error")).toBe(true);
+  });
+  it("importe les indices d’inflation et le SMIC quand l’onglet est présent", () => {
+    const wb = importWorkbook();
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([
+      ["Année", "Inflation annuelle", "Alimentation", "Services", "Énergie", "Transports", "Produits manufacturés", "SMIC net mensuel", "Date effet SMIC"],
+      ["2025", 1, 1.3, 2.2, -2.5, 1.1, -0.4, 1426.3, "01/01/2025"],
+    ]), "Inflation");
+    const parsed = parseWorkbook(wb);
+    expect(parsed.validation.ok).toBe(true);
+    expect(parsed.validation.hasInflation).toBe(true);
+    expect(parsed.dataset.salary.inflation?.[0]).toMatchObject({ year: "2025", rate_annual: 1 });
+    expect(parsed.dataset.salary.smic?.[0]).toMatchObject({ year: "2025", net_monthly: 1426.3 });
   });
 });
 

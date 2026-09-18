@@ -178,7 +178,7 @@ function ValidationSummary({ v }: { v: ValidationReport }) {
       )}
       {v.ok && <p className="text-xs text-text-sec mt-3">
         Feuilles lues : {v.sheets?.join(", ")}. Salaire : {v.nbSalaryMonths ? "activé" : "masqué"}.
-        Prêt : {v.hasLoan ? "activé" : "masqué"}. La vue inflation exige des indices et reste masquée pour le modèle v1.
+        Prêt : {v.hasLoan ? "activé" : "masqué"}. Inflation : {v.hasInflation ? "activée" : "masquée"}.
       </p>}
       {v.issues?.length > 0 && <div className="mt-4 text-sm" role="alert">
         <p className="font-semibold mb-2">{v.ok ? "Points à vérifier" : "Erreurs à corriger"}</p>
@@ -384,10 +384,10 @@ export function DataUploader() {
           )}
           <div className="mb-5 text-sm text-text-sec space-y-2">
             <a className="inline-flex items-center gap-2 text-indigo-text underline" href={`${import.meta.env.BASE_URL}modeles/Budget_v1.xlsx`} download>
-              <Download size={16} /> Télécharger le modèle Excel avec exemples fictifs
+              <Download size={16} /> Télécharger le modèle Excel prérempli avec la démo
             </a>
-            <p>Remplacez les exemples dans Comptes et Transactions. Déclarez la couverture de vos relevés et les soldes avant cette période. Salaires, Budgets et Prêt sont facultatifs : videz leurs lignes si vous n'avez pas ces données.</p>
-            <p>Le modèle public est recommandé. Les anciens classeurs Budget avec les onglets Fiche de Paie et Transactions AAAA sont également reconnus automatiquement. Lisez l'onglet Notice avant de remplir un nouveau fichier.</p>
+            <p>Vous pouvez d’abord importer le modèle tel quel : il contient exactement le jeu fictif de la démo. Pour vos données, faites-en une copie, lisez l’onglet Notice et remplacez toutes les lignes jaunes sans mélanger exemples et données réelles.</p>
+            <p>Paramètres, Comptes et Transactions sont obligatoires. Salaires, Inflation, Budgets et Prêt sont facultatifs : conservez leurs en-têtes et videz leurs lignes si vous ne les utilisez pas. Les anciens classeurs Budget restent reconnus automatiquement.</p>
           </div>
 
           {/* Zone drag & drop */}

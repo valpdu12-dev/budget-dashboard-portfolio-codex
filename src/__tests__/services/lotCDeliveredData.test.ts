@@ -28,16 +28,40 @@ describe("Jeux fictifs livrés avec C", () => {
     expect(applyConfiguration(cfg).saved).toBe(true);
     expect(restoreDemoConfiguration(migrated.config).config.accounts![1].label).toBe("Compte démo partagé");
   });
-  it("rapproche les montants du modèle v1 et la quote-part décrite dans le guide", () => {
+  it("le modèle v1 reproduit les données et les fonctionnalités de la démo", () => {
     const file = readFileSync("public/modeles/Budget_v1.xlsx");
     const buffer = new ArrayBuffer(file.length); new Uint8Array(buffer).set(file);
     const result = parseWorkbook(XLSX.read(buffer, { type: "array", cellDates: false, cellFormula: true }));
     expect(result.validation.ok).toBe(true);
+    expect(result.validation.issues).toEqual([]);
+    const demoTransactions = decodeTransactions(json("transactions"));
+    const demoSalary = json("salary");
+    const demoConfig = json("config");
+    const demoBudgets = json("budgets");
+    expect(result.dataset.transactions).toHaveLength(demoTransactions.length);
+    const demoTransfers = new Set<string>(demoConfig.transfers);
+    const comparableTransaction = (transaction: typeof demoTransactions[number], fromDemo: boolean) => ({
+      date: transaction.date, label: transaction.label, compte: transaction.compte, dc: transaction.dc, montant: transaction.montant,
+      type: fromDemo && demoTransfers.has(transaction.type) ? "Transfert interne" : transaction.type,
+      cat1: fromDemo && demoTransfers.has(transaction.type) ? "" : transaction.cat1,
+      cat2: fromDemo && demoTransfers.has(transaction.type) ? "" : transaction.cat2,
+    });
+    expect(result.dataset.transactions.map(transaction => comparableTransaction(transaction, false)))
+      .toEqual(demoTransactions.map(transaction => comparableTransaction(transaction, true)));
+    expect(Object.entries(result.dataset.config.init)).toEqual(Object.entries(demoConfig.init));
+    expect(Object.entries(result.dataset.config.accountKinds ?? {})).toEqual(Object.entries(demoConfig.accountKinds));
+    expect(result.dataset.config.loan).toEqual(demoConfig.loan);
+    expect(result.dataset.salary.months).toEqual(demoSalary.months);
+    expect(result.dataset.salary.inflation).toEqual(demoSalary.inflation);
+    expect(result.dataset.salary.inflationByCategory).toEqual(demoSalary.inflationByCategory);
+    expect(result.dataset.salary.smic).toEqual(demoSalary.smic);
+    expect(result.dataset.budgets).toEqual(demoBudgets);
     useDataStore.getState().setImportedDataset(result.dataset, "Budget_v1.xlsx", "2026-09-15T12:00:00Z");
     const months = Array.from(new Set(result.dataset.transactions.map(t => t.monthKey))).sort();
-    expect(renderHook(() => useAccountBalances(months)).result.current.currentBalances.Total).toBeCloseTo(4665.22, 2);
+    expect(renderHook(() => useAccountBalances(months)).result.current.currentBalances.Total).toBeCloseTo(46670.44, 2);
+    expect(renderHook(() => useAvailableFeatures()).result.current).toMatchObject({ hasSalary: true, hasInflation: true, hasSavings: true, hasLoan: true });
     const cfg = clone(useDataStore.getState().config!); cfg.accounts![0].share = 50; cfg.perspective = "personal";
     expect(applyConfiguration(cfg).ok).toBe(true);
-    expect(renderHook(() => useAccountBalances(months)).result.current.currentBalances.Total).toBe(3132.61);
+    expect(renderHook(() => useAccountBalances(months)).result.current.currentBalances.Total).toBeCloseTo(37216.94, 2);
   });
 });

@@ -36,6 +36,7 @@ export interface ValidationReport {
   issues: ImportIssue[];
   sheets: string[];
   hasLoan: boolean;
+  hasInflation: boolean;
 }
 const text = (v: unknown) => v == null ? "" : String(v).replace(/\u00a0/g, " ").trim();
 const round = (v: number) => Math.round(v * 100) / 100;
@@ -84,7 +85,7 @@ export function parseWorkbook(wb: XLSX.WorkBook): { dataset: ImportDataset; vali
   const active = (r: unknown[]) => r.some(v => v != null && text(v) !== "");
   const txSheets = wb.SheetNames.filter(n => /^Transactions(?: \d{4})?$/.test(n));
   for (const n of wb.SheetNames) {
-    if (!["Notice", "Paramètres", "Comptes", "Salaires", "Budgets", "Prêt", ...txSheets].includes(n)) issue(n, 1, "", "Feuille non reconnue : son contenu ne sera pas importé.");
+    if (!["Notice", "Paramètres", "Comptes", "Salaires", "Inflation", "Budgets", "Prêt", ...txSheets].includes(n)) issue(n, 1, "", "Feuille non reconnue : son contenu ne sera pas importé.");
   }
   const settings = new Map<string, unknown>();
   rows("Paramètres", ["Paramètre", "Valeur"], true).forEach((r, i) => {
@@ -128,7 +129,7 @@ export function parseWorkbook(wb: XLSX.WorkBook): { dataset: ImportDataset; vali
     if (!validCatalogLabel(type)) issue(name, row, "Type", "Type obligatoire (100 caractères maximum), sans nom technique réservé ni préfixe prev_.");
     if (!transfer && type === "Transfert interne") issue(name, row, "Transfert", "Identifiant commun aux deux mouvements obligatoire.");
     const cat1 = transfer ? "" : text(r[6]);
-    if (cat1 && !["Dépense Fixe", "Dépense Courante", "Dépense Occasionnelle"].includes(cat1)) issue(name, row, "Catégorie", "Catégorie inconnue. Utilisez la liste du modèle.");
+    if (dc === "Débit" && cat1 && !["Dépense Fixe", "Dépense Courante", "Dépense Occasionnelle"].includes(cat1)) issue(name, row, "Catégorie", "Catégorie inconnue. Utilisez la liste du modèle.");
     if (dc === "Débit" && !transfer && !text(r[7])) issue(name, row, "Sous-catégorie", "Sous-catégorie obligatoire pour les dépenses.");
     const tx = { date, label, compte, dc, montant, type, cat1, cat2: transfer ? "" : text(r[7]), cat3: label, cat4: "", ville: "", monthKey: date.slice(0, 7), ...(transfer ? { transferId: transfer } : {}) };
     const fingerprint = JSON.stringify(tx);
@@ -151,11 +152,27 @@ export function parseWorkbook(wb: XLSX.WorkBook): { dataset: ImportDataset; vali
     if (!entreprise || salaryKeys.has(mk)) issue("Salaires", row, "Employeur", "Employeur obligatoire et une seule ligne de salaire par mois.");
     salaryKeys.add(mk);
     const [brut, net, cotSal, indem, retenues] = r.slice(2, 7).map((v, j) => money(v, "Salaires", row, ["Brut", "Net", "Cotisations", "Indemnités", "Retenues"][j]));
-    if (Math.abs(net - (brut - cotSal + indem - retenues)) > 0.011) issue("Salaires", row, "Net", "Le net doit égaler brut − cotisations + indemnités − retenues.");
     salary.months.push({ mk, entreprise, brut, net, cotSal, indem, retenues });
   });
   salary.months.sort((a, b) => a.mk.localeCompare(b.mk));
   salary.lastMonth = salary.months[salary.months.length - 1]?.mk;
+  const inflationYears = new Set<string>();
+  rows("Inflation", ["Année", "Inflation annuelle", "Alimentation", "Services", "Énergie", "Transports", "Produits manufacturés", "SMIC net mensuel", "Date effet SMIC"]).forEach((r, i) => {
+    if (!active(r)) return;
+    const row = i + 2, year = text(r[0]);
+    if (!/^\d{4}$/.test(year) || inflationYears.has(year)) issue("Inflation", row, "Année", "Année obligatoire et unique au format AAAA.");
+    inflationYears.add(year);
+    const [rateAnnual, alimentation, services, energie, transports, produitsManufactures] = r.slice(1, 7).map((v, j) => money(v, "Inflation", row, ["Inflation annuelle", "Alimentation", "Services", "Énergie", "Transports", "Produits manufacturés"][j], true));
+    const netMonthly = money(r[7], "Inflation", row, "SMIC net mensuel");
+    const dateEffective = text(r[8]);
+    if (dateEffective && !/^\d{2}\/\d{2}\/\d{4}$/.test(dateEffective)) issue("Inflation", row, "Date effet SMIC", "Date obligatoire au format JJ/MM/AAAA.");
+    salary.inflation ??= [];
+    salary.inflationByCategory ??= [];
+    salary.smic ??= [];
+    salary.inflation.push({ year, rate_annual: rateAnnual, rate_alimentation: alimentation, rate_services: services, rate_energie: energie, rate_transports: transports, rate_produits_manufactures: produitsManufactures });
+    salary.inflationByCategory.push({ year, rate_annual: rateAnnual, rate_alimentation: alimentation, rate_services: services, rate_energie: energie, rate_transports: transports, rate_produits_manufactures: produitsManufactures });
+    salary.smic.push({ year, net_monthly: netMonthly, date_effective: dateEffective });
+  });
   const budgets: BudgetData = { budgets: [] };
   const cats = new Set<string>();
   rows("Budgets", ["Sous-catégorie", "Budget mensuel"]).forEach((r, i) => {
@@ -204,7 +221,7 @@ export function parseWorkbook(wb: XLSX.WorkBook): { dataset: ImportDataset; vali
     configurationErrors(migrated.config, migrated.transactions).forEach(message => issue("Paramètres", 1, "", message));
   }
   return { dataset, validation: {
-    ok: !issues.some(i => i.severity === "error"), issues, sheets: txSheets, hasLoan: Boolean(config.loan),
+    ok: !issues.some(i => i.severity === "error"), issues, sheets: txSheets, hasLoan: Boolean(config.loan), hasInflation: Boolean(salary.inflation?.length && salary.smic?.length),
     nbTransactions: transactions.length, dateMin, dateMax, nbMois: new Set(transactions.map(t => t.monthKey)).size,
     comptes: config.comptes ?? [], totalDebits, totalCredits, net: round(totalCredits - totalDebits),
     nbSalaryMonths: salary.months.length, lastSalaryMonth: salary.lastMonth ?? "", lastNetSalary: salary.months[salary.months.length - 1]?.net ?? 0,

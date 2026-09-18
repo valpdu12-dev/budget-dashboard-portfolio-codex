@@ -51,7 +51,7 @@ afterEach(() => {
 // Données minimales pour simuler un résultat valide
 const MOCK_DATASET = importDataset();
 const MOCK_VALIDATION = {
-  issues: [], sheets: ["Transactions"], hasLoan: true,
+  issues: [], sheets: ["Transactions"], hasLoan: true, hasInflation: false,
   ok: true, nbTransactions: 1, dateMin: "2025-03-15", dateMax: "2025-03-15",
   nbMois: 1, comptes: ["Banque Horizon - Courant"], totalDebits: 50, totalCredits: 0, net: -50,
   nbSalaryMonths: 1, lastSalaryMonth: "2025-03", lastNetSalary: 2800,

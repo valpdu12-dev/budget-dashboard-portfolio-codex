@@ -18,7 +18,8 @@ describe("Worker du modèle public", () => {
     parse(buffer);
     const result = messages.find(m => m.type === "result") as { dataset: { transactions: unknown[]; config: { comptes: string[] } }; validation: { ok: boolean; issues: unknown[] } };
     expect(result.validation.issues).toEqual([]); expect(result.validation.ok).toBe(true);
-    expect(result.dataset.transactions).toHaveLength(14); expect(result.dataset.config.comptes).toEqual(["Compte courant", "Livret"]);
+    expect(result.dataset.transactions).toHaveLength(578);
+    expect(result.dataset.config.comptes).toEqual(["Banque Horizon - Courant", "Banque Nova - Compte joint", "Banque Équilibre - Compte joint", "Carte repas - Titres restaurant", "Banque Nova - Épargne"]);
   });
   it.each([[true, true], [true, false], [false, true], [false, false]])("lit salaire=%s et prêt=%s depuis un fichier binaire", (salary, loan) => {
     parse(XLSX.write(importWorkbook(salary, loan), { type: "array", bookType: "xlsx" }));

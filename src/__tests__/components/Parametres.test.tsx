@@ -13,6 +13,12 @@ beforeEach(() => {
 });
 afterEach(() => { vi.restoreAllMocks(); vi.unstubAllGlobals(); });
 describe("Écran de paramètres", () => {
+  it("explique la différence entre le classeur source et les réglages d’affichage", () => {
+    render(<Parametres />);
+    expect(screen.getByRole("heading", { name: "Par où commencer ?" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Télécharger le modèle prérempli avec la démo" })).toHaveAttribute("download");
+    expect(screen.getByText(/Pour ajouter ou supprimer des comptes/)).toBeInTheDocument();
+  });
   it("enregistre les noms et la quote-part sans requête réseau", async () => {
     const user = userEvent.setup(); render(<Parametres />);
     const name = screen.getByLabelText("Nom du compte 1"); await user.clear(name); await user.type(name, "Compte commun");

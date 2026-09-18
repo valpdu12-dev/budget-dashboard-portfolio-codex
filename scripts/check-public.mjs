@@ -46,7 +46,7 @@ async function loadPrivateDenylist() {
   }
 }
 
-const approvedWorkbookHash = "11a6df1a4d506af8cd41fadf31f3e60d9ee6855f226d877b85dc33c091f82af8";
+const approvedWorkbookHash = "cd168a1141dc4d6d8382036d0776df6aa52437a0a7bc52a6ffab85dd2f3fffb3";
 const approvedWorkbookPaths = new Set(["public/modeles/Budget_v1.xlsx", "dist/modeles/Budget_v1.xlsx"]);
 
 const findings = [];

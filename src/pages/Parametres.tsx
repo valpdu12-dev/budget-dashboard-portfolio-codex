@@ -39,7 +39,34 @@ export default function Parametres() {
   };
   return <form onSubmit={save} noValidate className="flex flex-col gap-6">
     <PageHeader title="Paramètres" subtitle={dataOrigin === "static" ? "Personnaliser le jeu fictif de démonstration" : "Personnaliser vos comptes et vos règles de calcul"} />
-    <p className="text-sm text-text-sec">Les noms peuvent changer sans modifier les identifiants ni les montants. Pour ajouter un compte, un type ou des transactions, importez un classeur complet. Les réglages restent dans ce navigateur.</p>
+    <section className="card flex flex-col gap-4" aria-labelledby="getting-started-title">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h2 id="getting-started-title" className="font-semibold text-text">Par où commencer ?</h2>
+          <p className="mt-1 text-sm text-text-sec">Le classeur contient les données source. Cet écran ajuste uniquement leur présentation et certaines règles de calcul.</p>
+        </div>
+        <span className="rounded-full border border-border px-3 py-1 text-xs text-text-sec">{dataOrigin === "static" ? "Démo fictive active" : "Fichier importé actif"}</span>
+      </div>
+      <ol className="grid grid-cols-1 gap-3 md:grid-cols-3 text-sm">
+        <li className="rounded-lg border border-border bg-bg/40 p-3"><strong className="block text-text">1. Préparer Excel</strong><span className="text-text-sec">Ajoutez comptes et opérations dans le modèle, puis importez le fichier complet.</span></li>
+        <li className="rounded-lg border border-border bg-bg/40 p-3"><strong className="block text-text">2. Vérifier les réglages</strong><span className="text-text-sec">Contrôlez les soldes initiaux, la nature des comptes et les rôles des types.</span></li>
+        <li className="rounded-lg border border-border bg-bg/40 p-3"><strong className="block text-text">3. Choisir la vue</strong><span className="text-text-sec">Utilisez les montants bancaires ou appliquez une quote-part personnelle par compte.</span></li>
+      </ol>
+      <div className="flex flex-wrap gap-4 text-sm">
+        <a href={`${import.meta.env.BASE_URL}modeles/Budget_v1.xlsx`} download className="text-indigo-text underline">Télécharger le modèle prérempli avec la démo</a>
+        <a href={`${import.meta.env.BASE_URL}guides/parametres.html`} target="_blank" rel="noreferrer" className="text-indigo-text underline">Ouvrir le guide détaillé</a>
+      </div>
+    </section>
+    <details className="card group">
+      <summary className="cursor-pointer font-semibold text-text">Comprendre ce qui se règle ici</summary>
+      <dl className="mt-4 grid grid-cols-1 gap-4 text-sm md:grid-cols-2">
+        <div><dt className="font-medium text-text">Solde initial</dt><dd className="text-text-sec">Solde bancaire à la veille du début de couverture. Ce n’est ni le solde actuel ni le premier mouvement du relevé.</dd></div>
+        <div><dt className="font-medium text-text">Nature du compte</dt><dd className="text-text-sec">Courant pour les comptes de paiement ; Épargne pour les livrets et placements affichés dans Patrimoine.</dd></div>
+        <div><dt className="font-medium text-text">Quote-part</dt><dd className="text-text-sec">100 % si le compte vous appartient entièrement, 50 % pour une répartition égale, 0 % pour l’exclure de la vue personnelle.</dd></div>
+        <div><dt className="font-medium text-text">Rôle d’un type</dt><dd className="text-text-sec">Il détermine si une ligne est une opération courante, un transfert, du capital de prêt ou des intérêts. Le nom reste libre.</dd></div>
+      </dl>
+      <p className="mt-4 text-xs text-text-sec">Pour ajouter ou supprimer des comptes, des transactions ou des mois de salaire, modifiez le classeur Excel puis réimportez-le. Les réglages enregistrés ici restent dans ce navigateur.</p>
+    </details>
     <fieldset className="card flex flex-col gap-3">
       <legend className="font-semibold text-text">Vue des montants</legend>
       {draft.compatibility === "legacy-dashboard-v1" ? <p className="text-sm text-text-sec">
@@ -54,6 +81,7 @@ export default function Parametres() {
     <fieldset className="card flex flex-col gap-4">
       <legend className="font-semibold text-text">Comptes</legend>
       <p className="text-xs text-text-sec">Solde initial : solde juste avant le {coverage.dateMin ?? "début de couverture"}. Un solde négatif est accepté. Une quote-part de 0 % exclut le compte des montants personnels.</p>
+      <p className="rounded-lg border border-border bg-bg/40 p-3 text-xs text-text-sec"><strong className="text-text">Exemple :</strong> un compte joint à 2 000 € avec une quote-part de 50 % reste à 2 000 € en vue bancaire et vaut 1 000 € dans « Ma quote-part ».</p>
       {visibleAccounts.map((a, i) => <div key={a.id} className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 border-b border-border pb-4 last:border-0">
         <label className="text-sm text-text">Nom du compte {i + 1}<input className={inputClass} value={a.label} maxLength={100} onChange={e => setDraft({ ...draft, accounts: accounts.map(b => b.id === a.id ? { ...b, label: e.target.value } : b) })} /></label>
         <label className="text-sm text-text">Nature du compte {i + 1}<select className={inputClass} value={a.kind} onChange={e => setDraft({ ...draft, accounts: accounts.map(b => b.id === a.id ? { ...b, kind: e.target.value as "Courant" | "Épargne" } : b) })}><option>Courant</option><option>Épargne</option></select></label>
