@@ -41,11 +41,11 @@ export function linkTransfers(transactions: Transaction[], roles?: Map<string, T
 /** Une migration v1 conserve chaque montant, salaire, budget et borne de couverture. */
 export function migrateDataset(dataset: ImportDataset): ImportDataset {
   if (dataset.schemaVersion === 2 && dataset.config.version === 2) return dataset;
-  const accounts = (dataset.config.comptes ?? Object.keys(dataset.config.init)).map((label, i) => ({
+  const accounts = dataset.config.accounts?.map(account => ({ ...account })) ?? (dataset.config.comptes ?? Object.keys(dataset.config.init)).map((label, i) => ({
     id: `account-${String(i + 1).padStart(3, "0")}`, label,
     initialBalance: dataset.config.init[label], kind: dataset.config.accountKinds?.[label] ?? "Courant", share: 100,
   }));
-  const types = [...new Set(dataset.transactions.map(t => t.type))].map((label, i) => ({
+  const types = dataset.config.types?.map(type => ({ ...type })) ?? [...new Set(dataset.transactions.map(t => t.type))].map((label, i) => ({
     id: `type-${String(i + 1).padStart(3, "0")}`, label,
     role: transactionRole(dataset.transactions.find(t => t.type === label)!) === "transfer" && !dataset.config.transfers?.includes(label) ? "ordinary" as const : transactionRole(dataset.transactions.find(t => t.type === label)!),
   }));

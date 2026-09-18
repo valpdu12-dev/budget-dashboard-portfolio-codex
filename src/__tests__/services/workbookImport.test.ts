@@ -34,9 +34,9 @@ describe("Modèle Budget v1", () => {
     const wb = importWorkbook(); wb.Sheets.Comptes.B2.v = null; wb.Sheets.Transactions.C2.v = "Autre compte";
     expect(parseWorkbook(wb).validation.ok).toBe(false);
   });
-  it("refuse les formules même avec un résultat numérique en cache", () => {
+  it("accepte les formules lorsque leur résultat est enregistré dans le classeur", () => {
     const wb = importWorkbook(); wb.Sheets.Transactions.E2.f = "20+30";
-    expect(parseWorkbook(wb).validation.issues).toContainEqual(expect.objectContaining({ row: 2, message: expect.stringContaining("sans formule") }));
+    expect(parseWorkbook(wb).validation.ok).toBe(true);
   });
   it("rapproche les deux mouvements de chaque transfert", () => {
     const wb = importWorkbook(); wb.Sheets.Transactions.E5.v = 301;
@@ -58,8 +58,10 @@ describe("Modèle Budget v1", () => {
     expect(result.validation.ok).toBe(true); expect(result.validation.issues[0].severity).toBe("warning");
     expect(result.dataset.transactions).toHaveLength(5);
   });
-  it("refuse les anciens formats et les feuilles inconnues avec une indication", () => {
+  it("ignore les feuilles de suivi reconnues mais signale les feuilles réellement inconnues", () => {
     const wb = importWorkbook(); XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([[1]]), "Fiche de Paie");
+    expect(parseWorkbook(wb).validation.ok).toBe(true);
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([[1]]), "Inconnue");
     expect(parseWorkbook(wb).validation.ok).toBe(false);
   });
   it("convertit correctement les dates Excel, y compris le calendrier 1904", () => {
@@ -85,6 +87,18 @@ describe("Modèle Budget v1", () => {
     expect(parsed.validation.hasInflation).toBe(true);
     expect(parsed.dataset.salary.inflation?.[0]).toMatchObject({ year: "2025", rate_annual: 1 });
     expect(parsed.dataset.salary.smic?.[0]).toMatchObject({ year: "2025", net_monthly: 1426.3 });
+  });
+  it("préserve les paramètres de compatibilité, comptes techniques et rôles KPI", () => {
+    const wb = importWorkbook(false, false);
+    XLSX.utils.sheet_add_aoa(wb.Sheets["Paramètres"], [["Compatibilité", "legacy-dashboard-v1"]], { origin: "A5" });
+    XLSX.utils.sheet_add_aoa(wb.Sheets.Comptes, [["Inclure dans le solde"], ["Non"]], { origin: "D1" });
+    XLSX.utils.sheet_add_aoa(wb.Sheets.Transactions, [["Rôle KPI"], ["ordinary"]], { origin: "J1" });
+    wb.Sheets.Transactions.E2.v = -12;
+    const parsed = parseWorkbook(wb);
+    expect(parsed.validation.ok).toBe(true);
+    expect(parsed.dataset.config.compatibility).toBe("legacy-dashboard-v1");
+    expect(parsed.dataset.config.accounts?.[0].includeInBalance).toBe(false);
+    expect(parsed.dataset.transactions[0]).toMatchObject({ montant: -12, kpiRole: "ordinary" });
   });
 });
 
@@ -128,9 +142,9 @@ describe("Compatibilité avec l'ancien classeur Budget", () => {
     expect(isImportDataset(result.dataset)).toBe(true);
   });
 
-  it("continue de refuser les formules dans le modèle public", () => {
+  it("accepte aussi les formules enregistrées dans le modèle public", () => {
     const wb = importWorkbook();
     wb.Sheets.Transactions.E2.f = "20+30";
-    expect(parseWorkbook(wb).validation.issues).toContainEqual(expect.objectContaining({ message: expect.stringContaining("sans formule") }));
+    expect(parseWorkbook(wb).validation.ok).toBe(true);
   });
 });

@@ -1,5 +1,5 @@
 import * as XLSX from "xlsx";
-import type { BudgetData, Config, SalaryData, Transaction } from "@/types";
+import type { BudgetData, Config, SalaryData, Transaction, TransactionRole } from "@/types";
 import { validISODate } from "@/utils/importDate";
 import { loanSchedule, closestLoanTerm } from "@/utils/loanRate";
 import { validCatalogLabel, configurationErrors } from "./configurationValidation";
@@ -56,11 +56,6 @@ export function parseWorkbook(wb: XLSX.WorkBook): { dataset: ImportDataset; vali
     issues.push({ sheet, row, column, message, severity });
   };
   const date1904 = Boolean(wb.Workbook?.WBProps?.date1904);
-  for (const name of wb.SheetNames.filter(n => n !== "Notice")) {
-    for (const [address, cell] of Object.entries(wb.Sheets[name])) {
-      if (!address.startsWith("!") && cell.f) issue(name, XLSX.utils.decode_cell(address).r + 1, address.replace(/\d/g, ""), "Saisissez une valeur, sans formule. Collez les valeurs de votre source.");
-    }
-  }
   function rows(name: string, headers: string[], required = false): unknown[][] {
     const sheet = wb.Sheets[name];
     if (!sheet) {
@@ -85,21 +80,24 @@ export function parseWorkbook(wb: XLSX.WorkBook): { dataset: ImportDataset; vali
   const active = (r: unknown[]) => r.some(v => v != null && text(v) !== "");
   const txSheets = wb.SheetNames.filter(n => /^Transactions(?: \d{4})?$/.test(n));
   for (const n of wb.SheetNames) {
-    if (!["Notice", "Paramètres", "Comptes", "Salaires", "Inflation", "Budgets", "Prêt", ...txSheets].includes(n)) issue(n, 1, "", "Feuille non reconnue : son contenu ne sera pas importé.");
+    if (!["Notice", "Paramètres", "Comptes", "Salaires", "Inflation", "Budgets", "Prêt", "Fiche de Paie", "Liste déroulante", "Archive transactions", "Visualisation", "Listes modèle", ...txSheets].includes(n)) issue(n, 1, "", "Feuille non reconnue : son contenu ne sera pas importé.");
   }
   const settings = new Map<string, unknown>();
   rows("Paramètres", ["Paramètre", "Valeur"], true).forEach((r, i) => {
     if (!active(r)) return;
     const k = text(r[0]);
-    if (!["Version", "Début couverture", "Fin couverture"].includes(k) || settings.has(k)) issue("Paramètres", i + 2, "Paramètre", "Paramètre inconnu ou présent plusieurs fois.");
+    if (!["Version", "Début couverture", "Fin couverture", "Compatibilité"].includes(k) || settings.has(k)) issue("Paramètres", i + 2, "Paramètre", "Paramètre inconnu ou présent plusieurs fois.");
     settings.set(k, r[1]);
   });
   if (settings.get("Version") !== 1) issue("Paramètres", 2, "Version", "Version prise en charge : 1 (nombre).");
+  const compatibility = text(settings.get("Compatibilité"));
+  if (compatibility && compatibility !== "legacy-dashboard-v1") issue("Paramètres", 5, "Valeur", "Mode de compatibilité inconnu.");
   const dateMin = dateValue(settings.get("Début couverture"), date1904);
   const dateMax = dateValue(settings.get("Fin couverture"), date1904);
   if (!validISODate(dateMin) || !validISODate(dateMax) || dateMin > dateMax) issue("Paramètres", 1, "Valeur", "Déclarez des bornes valides YYYY-MM-DD, dans l'ordre chronologique.");
   const init: Record<string, number> = Object.create(null);
   const accountKinds: Record<string, "Courant" | "Épargne"> = Object.create(null);
+  const accountIncludes: Record<string, boolean> = Object.create(null);
   rows("Comptes", ["Compte", "Solde initial", "Nature"], true).forEach((r, i) => {
     if (!active(r)) return;
     const name = text(r[0]);
@@ -108,13 +106,20 @@ export function parseWorkbook(wb: XLSX.WorkBook): { dataset: ImportDataset; vali
     const kind = text(r[2]);
     if (kind !== "Courant" && kind !== "Épargne") issue("Comptes", i + 2, "Nature", "Valeurs admises : Courant ou Épargne.");
     else accountKinds[name] = kind;
+    const include = text(r[3]);
+    if (include && include !== "Oui" && include !== "Non") issue("Comptes", i + 2, "Inclure dans le solde", "Valeurs admises : Oui ou Non.");
+    accountIncludes[name] = include !== "Non";
   });
   if (!Object.keys(init).length) issue("Comptes", 2, "Compte", "Déclarez au moins un compte et son solde avant le début de couverture.");
   const transactions: Transaction[] = [];
   const transfers = new Map<string, { tx: Transaction; sheet: string; row: number }[]>();
   const seen = new Set<string>();
   if (!txSheets.length) issue("Transactions", 1, "", "Feuille Transactions absente.");
-  txSheets.forEach(name => rows(name, ["Date", "Libellé", "Compte", "Sens", "Montant", "Type", "Catégorie", "Sous-catégorie", "Transfert"]).forEach((r, i) => {
+  txSheets.forEach(name => {
+    const header = XLSX.utils.sheet_to_json<unknown[]>(wb.Sheets[name], { header: 1, raw: true, defval: null, blankrows: true })[0] ?? [];
+    const extra = new Map(header.map((value, index) => [text(value), index]));
+    const optional = (r: unknown[], label: string) => extra.has(label) ? r[extra.get(label)!] : null;
+    rows(name, ["Date", "Libellé", "Compte", "Sens", "Montant", "Type", "Catégorie", "Sous-catégorie", "Transfert"]).forEach((r, i) => {
     if (!active(r)) return;
     const row = i + 2;
     const date = dateValue(r[0], date1904);
@@ -124,20 +129,26 @@ export function parseWorkbook(wb: XLSX.WorkBook): { dataset: ImportDataset; vali
     if (!label) issue(name, row, "Libellé", "Libellé obligatoire.");
     if (!(compte in init)) issue(name, row, "Compte", "Compte absent de la feuille Comptes.");
     if (!["Débit", "Crédit"].includes(dc)) issue(name, row, "Sens", "Valeurs admises : Débit ou Crédit.");
-    const montant = money(r[4], name, row, "Montant");
-    const type = transfer ? "Transfert interne" : text(r[5]);
+    const montant = money(r[4], name, row, "Montant", compatibility === "legacy-dashboard-v1");
+    const enteredType = text(r[5]);
+    const type = transfer && compatibility !== "legacy-dashboard-v1" ? "Transfert interne" : enteredType;
     if (!validCatalogLabel(type)) issue(name, row, "Type", "Type obligatoire (100 caractères maximum), sans nom technique réservé ni préfixe prev_.");
     if (!transfer && type === "Transfert interne") issue(name, row, "Transfert", "Identifiant commun aux deux mouvements obligatoire.");
-    const cat1 = transfer ? "" : text(r[6]);
+    const cat1 = transfer && compatibility !== "legacy-dashboard-v1" ? "" : text(r[6]);
     if (dc === "Débit" && cat1 && !["Dépense Fixe", "Dépense Courante", "Dépense Occasionnelle"].includes(cat1)) issue(name, row, "Catégorie", "Catégorie inconnue. Utilisez la liste du modèle.");
     if (dc === "Débit" && !transfer && !text(r[7])) issue(name, row, "Sous-catégorie", "Sous-catégorie obligatoire pour les dépenses.");
-    const tx = { date, label, compte, dc, montant, type, cat1, cat2: transfer ? "" : text(r[7]), cat3: label, cat4: "", ville: "", monthKey: date.slice(0, 7), ...(transfer ? { transferId: transfer } : {}) };
+    const kpiRole = text(optional(r, "Rôle KPI")) as TransactionRole | "";
+    if (kpiRole && !["ordinary", "transfer", "loan-capital", "loan-interest"].includes(kpiRole)) issue(name, row, "Rôle KPI", "Rôle admis : ordinary, transfer, loan-capital ou loan-interest.");
+    const tx = { date, label, compte, dc, montant, type, cat1, cat2: transfer && compatibility !== "legacy-dashboard-v1" ? "" : text(r[7]),
+      cat3: text(optional(r, "Détail")) || label, cat4: text(optional(r, "Projet")), ville: text(optional(r, "Ville")), monthKey: date.slice(0, 7),
+      ...(transfer ? { transferId: transfer } : {}), ...(kpiRole ? { kpiRole } : {}) };
     const fingerprint = JSON.stringify(tx);
     if (seen.has(fingerprint)) issue(name, row, "", "Mouvement identique déjà présent. Vérifiez un éventuel doublon.", "warning");
     seen.add(fingerprint);
     transactions.push(tx);
     if (transfer) transfers.set(transfer, [...(transfers.get(transfer) ?? []), { tx, sheet: name, row }]);
-  }));
+    });
+  });
   if (!transactions.length) issue("Transactions", 2, "", "Au moins une transaction est nécessaire.");
   transfers.forEach(group => {
     const a = group[0], b = group[1];
@@ -148,7 +159,7 @@ export function parseWorkbook(wb: XLSX.WorkBook): { dataset: ImportDataset; vali
   rows("Salaires", ["Mois", "Employeur", "Brut", "Net", "Cotisations", "Indemnités", "Retenues"]).forEach((r, i) => {
     if (!active(r)) return;
     const row = i + 2, mk = text(r[0]), entreprise = text(r[1]);
-    if (!validISODate(`${mk}-01`) || mk < dateMin.slice(0, 7) || mk > dateMax.slice(0, 7)) issue("Salaires", row, "Mois", "Mois YYYY-MM obligatoire, dans la couverture déclarée.");
+    if (!validISODate(`${mk}-01`)) issue("Salaires", row, "Mois", "Mois obligatoire au format YYYY-MM.");
     if (!entreprise || salaryKeys.has(mk)) issue("Salaires", row, "Employeur", "Employeur obligatoire et une seule ligne de salaire par mois.");
     salaryKeys.add(mk);
     const [brut, net, cotSal, indem, retenues] = r.slice(2, 7).map((v, j) => money(v, "Salaires", row, ["Brut", "Net", "Cotisations", "Indemnités", "Retenues"][j]));
@@ -156,14 +167,15 @@ export function parseWorkbook(wb: XLSX.WorkBook): { dataset: ImportDataset; vali
   });
   salary.months.sort((a, b) => a.mk.localeCompare(b.mk));
   salary.lastMonth = salary.months[salary.months.length - 1]?.mk;
+  const optionalMoney = (v: unknown, sheet: string, row: number, col: string): number | null => v == null || text(v) === "" ? null : money(v, sheet, row, col, true);
   const inflationYears = new Set<string>();
   rows("Inflation", ["Année", "Inflation annuelle", "Alimentation", "Services", "Énergie", "Transports", "Produits manufacturés", "SMIC net mensuel", "Date effet SMIC"]).forEach((r, i) => {
     if (!active(r)) return;
     const row = i + 2, year = text(r[0]);
     if (!/^\d{4}$/.test(year) || inflationYears.has(year)) issue("Inflation", row, "Année", "Année obligatoire et unique au format AAAA.");
     inflationYears.add(year);
-    const [rateAnnual, alimentation, services, energie, transports, produitsManufactures] = r.slice(1, 7).map((v, j) => money(v, "Inflation", row, ["Inflation annuelle", "Alimentation", "Services", "Énergie", "Transports", "Produits manufacturés"][j], true));
-    const netMonthly = money(r[7], "Inflation", row, "SMIC net mensuel");
+    const [rateAnnual, alimentation, services, energie, transports, produitsManufactures] = r.slice(1, 7).map((v, j) => optionalMoney(v, "Inflation", row, ["Inflation annuelle", "Alimentation", "Services", "Énergie", "Transports", "Produits manufacturés"][j]));
+    const netMonthly = optionalMoney(r[7], "Inflation", row, "SMIC net mensuel");
     const dateEffective = text(r[8]);
     if (dateEffective && !/^\d{2}\/\d{2}\/\d{4}$/.test(dateEffective)) issue("Inflation", row, "Date effet SMIC", "Date obligatoire au format JJ/MM/AAAA.");
     salary.inflation ??= [];
@@ -182,7 +194,14 @@ export function parseWorkbook(wb: XLSX.WorkBook): { dataset: ImportDataset; vali
     cats.add(cat2);
     budgets.budgets.push({ cat2, target: money(r[1], "Budgets", i + 2, "Budget mensuel"), active: true, updated_at: null });
   });
-  const config: Config = { init, comptes: Object.keys(init), accountKinds, balanceMode: "direct", transfers: ["Transfert interne"], coverage: { dateMin, dateMax } };
+  const accountDefinitions = Object.keys(init).map((label, index) => ({ id: `account-${String(index + 1).padStart(3, "0")}`, label, initialBalance: init[label], kind: accountKinds[label], share: 100, includeInBalance: accountIncludes[label] }));
+  const typeRoles = new Map<string, TransactionRole>();
+  transactions.forEach(transaction => { if (!typeRoles.has(transaction.type)) typeRoles.set(transaction.type, transaction.kpiRole ?? "ordinary"); });
+  const typeDefinitions = [...typeRoles].map(([label, role], index) => ({ id: `type-${String(index + 1).padStart(3, "0")}`, label, role }));
+  const isCompatibilityImport = compatibility === "legacy-dashboard-v1";
+  const config: Config = { init, comptes: Object.keys(init), accountKinds, balanceMode: "direct",
+    transfers: isCompatibilityImport ? typeDefinitions.filter(type => type.role === "transfer").map(type => type.label) : ["Transfert interne"],
+    coverage: { dateMin, dateMax }, ...(isCompatibilityImport ? { compatibility, accounts: accountDefinitions, types: typeDefinitions } : {}) };
   const loanRows = rows("Prêt", ["Compte", "Capital initial", "Mensualité", "Nombre échéances"]).map((r, i) => ({ r, row: i + 2 })).filter(({ r }) => active(r));
   if (loanRows.length > 1) issue("Prêt", loanRows[1].row, "", "Un seul prêt est pris en charge dans le modèle v1.");
   if (loanRows[0]) {
